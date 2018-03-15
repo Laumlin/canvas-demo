@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>七巧板整理版</title>
+</head>
+<body>
+	<canvas id="c"></canvas>
+</body>
+</html>
+<script type="text/javascript">
+	let obj = [
+		{
+			f:[{x:0, y:0}, {x:300,y:300}, {x:0,y:600}],
+			color: '#FeF734',
+		},
+		{
+			f:[{x:0, y:0}, {x:300,y:300}, {x:600,y:0}],
+			color: 'purple',
+		},
+		{
+			f:[{x:300, y:300}, {x:150,y:450}, {x:450,y:450}],
+			color: 'blue',
+		},
+		{
+			f:[{x:600, y:0}, {x:450,y:150}, {x:600,y:300}],
+			color: '#D34',
+		},
+		{
+			f:[{x:600, y:300}, {x:600,y:600}, {x:300,y:600}],
+			color: '#897',
+		},
+		{
+			f:[{x:300, y:300}, {x:450,y:150}, {x:600,y:300}, {x:450,y:450}],
+			color: '#F12',
+		},
+		{
+			f:[{x:0, y:600}, {x:300,y:600}, {x:450,y:450}, {x:150,y:450}],
+			color: '#F57D32',
+		},
+	];
+	window.onload = function() {
+		let canvas = document.getElementById('c');
+		canvas.width = 600;
+		canvas.height = 600;
+		let c = canvas.getContext('2d');
+		for(let i = 0; i < obj.length; i++){
+			c.fillStyle = obj[i].color;
+			c.lineWidth = 5;
+			c.beginPath();
+			c.moveTo(obj[i].f[0].x, obj[i].f[0].y);
+			for(let j = 1; j < obj[i].f.length; j++){
+				c.lineTo(obj[i].f[j].x, obj[i].f[j].y);
+			}
+			c.closePath();
+			c.fill();
+			c.stroke();
+		}
+		c.lineWidth = 10;
+		c.strokeRect(0,0,600,600);
+	}
+
+</script>

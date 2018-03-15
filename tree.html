@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>tree</title>
+</head>
+<body>
+	<canvas id="tree"></canvas>
+</body>
+</html>
+<script type="text/javascript">
+	let tree = document.getElementById('tree');
+	tree.width = 400;
+	tree.height = 400;
+	//tree.style.background = 'gray';
+	let ctx = tree.getContext('2d');
+	var drawTrees = function(ctx, startX, startY, angle, length, depth, branchWidth){
+		let rand = Math.random(), endX, endY, newAngle, newLength, newDepth,
+		maxAngle = Math.PI/2, maxBranch = 3, subBranches;
+		ctx.beginPath();
+		ctx.moveTo(startX, startY);
+		endX = startX + length*Math.cos(angle);
+		endY = startY + length*Math.sin(angle);
+		ctx.lineCap = 'round';
+		ctx.lineWidth = branchWidth;
+		if(depth<=2){
+			ctx.strokeStyle = 'rgb(0,'+((Math.floor(rand*64)+128))+',0)';
+		}
+		else{
+			ctx.strokeStyle = 'rgb('+((Math.floor(rand*64)+64))+',50,25)';
+		}
+		ctx.lineTo(endX, endY);
+		ctx.stroke();
+		newDepth = depth-1;
+		branchWidth *= 0.7;
+		if(!newDepth)
+			return;
+		subBranches = Math.floor(rand*(maxBranch)+1);
+		for(let i=0; i<subBranches; i++){
+			newAngle = -rand*Math.PI;
+			newLength = (0.7+rand*0.3)*length;
+			drawTrees(ctx,endX,endY,newAngle,newLength,newDepth,branchWidth);
+		}
+	}
+	drawTrees(ctx,200,400,-Math.PI/2, 60, 8, 10);
+
+</script>
