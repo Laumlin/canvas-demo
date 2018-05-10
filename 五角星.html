@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>five-star</title>
+</head>
+<body>
+	<canvas id="star"></canvas>
+</body>
+</html>
+<script type="text/javascript">
+	var canvas = document.getElementById('star');
+		canvas.width = 400;
+		canvas.height = 400;
+	var ctx = canvas.getContext('2d');
+		ctx.fillStyle = 'red';
+
+	function draw(ctx, r, x, y, rot){
+		ctx.beginPath();
+		for(let i=0; i<5; i++){
+			ctx.lineTo(Math.cos((18+72*i-rot)/180*Math.PI)*r+x, -Math.sin((18+72*i-rot)/180*Math.PI)*r+y);
+			ctx.lineTo(Math.cos((54+72*i-rot)/180*Math.PI)*r/2.4+x, -Math.sin((54+72*i-rot)/180*Math.PI)*r/2.4+y);
+		}
+		ctx.closePath();
+		ctx.fill();
+	}
+	draw(ctx, 150, 200, 200, 0);
+
+</script>

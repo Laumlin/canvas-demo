@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>碰撞检测</title>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+</body>
+</html>
+<script src='js/box.js'></script>
+<script src="js/utils.js"></script>
+<script type="text/javascript">
+	var canvas = document.getElementById('canvas');
+	canvas.style.background = '#000';
+	var W = canvas.width = 600,
+		H = canvas.height = 600;
+	var ctx = canvas.getContext('2d');
+
+	var boxes = [],
+		gravity = 0.01;
+
+	var activeBox = createBox();
+
+	function createBox() {
+		var w = Math.random()*40+10;
+		var h = Math.random()*40+10;
+		var color = Math.random()*(0xffffff);
+		var box = new Box(w,h,color);
+		box.x = Math.random()*W;
+		boxes.push(box);
+		return box;
+	}
+
+	window.addEventListener('keydown', function(e){
+		switch(e.keyCode){
+			case 37:
+				activeBox.x -= 5;
+				break;
+			case 39:
+				activeBox.x += 5;
+				break;
+			case 40:
+				gravity = 0.05;
+		}
+	}, false);
+	window.addEventListener('keyup', function() {
+		gravity = 0.01;
+	}, false);
+
+	function applyBox(box){
+		if(box != activeBox && utils.intersects(box,activeBox)){
+			activeBox.y = box.y - activeBox.height;
+			activeBox = new createBox();
+		}
+		box.draw(ctx);
+	}
+
+	(function drawFrame(){
+		window.requestAnimationFrame(drawFrame);
+		ctx.clearRect(0,0,W,H);
+
+		activeBox.vy += gravity;
+		activeBox.y += activeBox.vy;
+
+		if(activeBox.x<0){
+			activeBox.x = 0;
+		}else if(activeBox.y+activeBox.height>H){
+			activeBox.y = H - activeBox.height;
+			activeBox = createBox();
+		}else if(activeBox.x + activeBox.width > W){
+			activeBox.x = W - activeBox.width;
+		}
+
+		boxes.forEach(applyBox);
+	}())
+</script>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>three_balls</title>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+</body>
+</html>
+<script src="./js/ball.js"></script>
+<script src="./js/utils.js"></script>
+<script type="text/javascript">
+	var canvas = document.getElementById('canvas');
+	canvas.style.background = '#000';
+	var W = canvas.width = 600,
+		H = canvas.height = 600;
+	var ctx = canvas.getContext('2d');
+
+	var Big = new Ball(20);
+	Big.x = W/2;
+	Big.y = H/2;
+
+	var balls = [],
+	ball_length = 3;
+	var spring = 0.03,
+		f = 0.95;
+	var mouse = utils.captureMouse(canvas);
+	var handleBall = null;
+
+	for(var i=0; i<ball_length; i++){
+		var size = 10;
+		var color = 'purple';
+		var ball = new Ball(size, color);
+		ball.x = Math.random()*W;
+		ball.y = Math.random()*H;
+		balls.push(ball);
+	}
+
+	canvas.addEventListener('mousedown', function(){
+		balls.forEach(function(ball){
+			if(utils.containPoint(ball.getBounds(),mouse.x,mouse.y)){
+				handleBall = ball;
+			}
+		})	
+	}, false);
+	canvas.addEventListener('mousemove', function(){
+		if(handleBall){
+			handleBall.x = mouse.x;
+			handleBall.y = mouse.y;
+		}
+	}, false);
+	canvas.addEventListener('mouseup', function(){
+		handleBall = null;
+	},false);
+
+	function drawLine(handle) {
+		ctx.strokeStyle = '#fff';
+		ctx.moveTo(handle.x, handle.y);
+		ctx.lineTo(Big.x, Big.y);
+		ctx.stroke();
+		handle.draw(ctx);
+		Big.draw(ctx);
+	}
+
+	function handleApply(handle){
+		var dx = (handle.x-Big.x )*spring;
+		var dy = (handle.y-Big.y)*spring;
+		Big.vx += dx;
+		Big.vy += dy;
+	}
+
+	(function drawFrame(){
+		window.requestAnimationFrame(drawFrame);
+		ctx.clearRect(0,0,W,H);
+		balls.forEach(handleApply);
+		Big.vx *= f;
+		Big.vy *= f;
+		Big.x += Big.vx;
+		Big.y += Big.vy;
+		balls.forEach(drawLine);
+	}())
+</script>

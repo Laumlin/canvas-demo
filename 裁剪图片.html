@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>cut-picture</title>
+	<style type="text/css">
+		body {
+			text-align: center;
+		}
+		#label {
+			position: relative;
+			margin: 20px auto;
+			width: 300px;
+			height: 300px;
+			text-align: center;
+			background-color: #fff;
+			border: 1px solid #ccc;
+		}
+		#get_image{
+			position: absolute;
+		}
+		#edit_pic{position:absolute;display:none;background:#000;}
+		#cover_box{position: absolute;z-index: 9999;display:none;top:0px;left:0px;}
+		#show_edit{margin: 0 auto;display:inline-block;}
+		#show_pic{height:150px;width:150px;border:2px solid #000;overflow:hidden;margin:0 auto;display:inline-block; 
+	</style>
+</head>
+<body>
+	<input type="file" name="file" id="post_file">
+	<button id="save_button">SAVE</button>
+
+	<div id="label">
+		<canvas id="get_image"></canvas>
+		<p>
+			<canvas id="cover_box"></canvas>
+			<canvas id="edit_pic"></canvas>
+		</p>
+	</div>
+
+	<p>
+		<span id="show_edit"></span>
+		<span id="show_pic"><img src=""></span>
+	</p>
+</body>
+</html>
+<script type="text/javascript">
+	var postFile = {
+		init: function() {
+			var t = this;
+			t.regional = document.getElementById('label');
+			t.getImage = document.getElementById('get_image');
+			t.editPic = document.getElementById('edit_pic');
+			t.editBox = document.getElementById('cover_box');
+			t.px = 0;  //background image x
+			t.py = 0;  //background image y
+			t.sx = 15;   //copy area x
+			t.sy = 15;   //copy area y
+			t.sHeight = 150  //crop area height
+			t.sWidth = 150   //crop area width
+			document.getElementById('post_file').addEventListener("change", t.handlefiles, false);
+			
+			document.getElementById('save_button').onclick =  function(){
+				console.log(t)
+				t.editPic.style.width = t.sWidth;
+				t.editPic.style.height = t.sHeight;
+				let ctx = t.editPic.getContext('2d');
+
+				let img = new Image();
+				img.src = t.imgUrl;
+
+				img.onload = function() {
+					ctx.drawImage(img, t.sx, t.sy, t.sWidth, t.sHeight, 0, 0, t.sWidth, t.sHeight);
+					document.getElementById('show_pic').getElementsByTagName('img')[0].src = t.editPic.toDataURL();
+				}
+
+			}
+		}
+
+	}
+
+	postFile.handlefiles = function() {
+		let fileList = this.files[0];
+		let oFReader = new FileReader();
+		//readAsDataURL()将文件的内容取出来并处理成base64编码格式
+		oFReader.readAsDataURL(fileList);
+		oFReader.onload = function(oFREvent) {
+			postFile.painImage(oFREvent.target.result);
+		};
+		
+	}
+	postFile.painImage = function(url) {
+		let t = this;
+		let createCanvas = t.getImage.getContext('2d');
+		let img = new Image();
+		img.src = url;
+		img.onload = function() {
+
+			if(img.width < t.regional.offsetWidth && img.height < t.regional.offsetHeight){
+				t.imgWidth = img.width;
+				t.imgHeight = img.height;
+			} else {
+				let pWidth = img.width / (img.height / t.regional.offsetHeight)
+				let pHeight = img.height / (img.width / t.regional.offsetWidth)
+				t.imgWidth = img.width>img.height?t.regional.offsetWidth:pWidth;
+				t.imgHeight = img.height>img.width?t.regional.offsetHeight:pHeight;
+			}
+			t.px = (t.regional.offsetWidth-t.imgWidth)/2+'px';
+			t.py = (t.regional.offsetHeight-t.imgHeight)/2+'px';
+
+			t.getImage.height = t.imgHeight;
+			t.getImage.width = t.imgWidth;
+			t.getImage.style.left = t.px;
+			t.getImage.style.top = t.py;
+
+			createCanvas.drawImage(img, 0,0, t.imgWidth, t.imgHeight);
+			t.imgUrl = t.getImage.toDataURL();
+			t.cutImage();
+		 	t.drag();
+		}
+	}
+	postFile.cutImage = function(){
+		let t = this;
+
+		t.editBox.height = t.imgHeight;
+		t.editBox.width = t.imgWidth;
+		t.editBox.style.display = 'block';
+		t.editBox.style.left = t.px;
+		t.editBox.style.top = t.py;
+
+		var cover = t.editBox.getContext('2d');
+		cover.fillStyle = 'rgba(0,0,0,.5)';
+		cover.fillRect(0,0,t.imgWidth,t.imgHeight);
+		cover.clearRect(t.sx,t.sy,t.sWidth,t.sHeight);
+
+		document.getElementById('show_edit').style.width = t.sWidth + 'px';
+		document.getElementById('show_edit').style.height = t.sHeight + 'px';
+		document.getElementById('show_edit').style.background = 'url('+t.imgUrl+')'+ -t.sx + 'px ' + -t.sy + 'px no-repeat';
+	}
+
+	postFile.drag = function() {
+		let t = this;
+		let draging = false;
+		let startX = 0;
+		let startY = 0;
+		document.getElementById('cover_box').onmousemove = function(e) {
+			let pageX = e.pageX - (t.regional.offsetLeft + this.offsetLeft);
+			let pageY = e.pageY - (t.regional.offsetTop + this.offsetTop);
+			if(pageX > t.sx && pageX < t.sx + t.sWidth && pageY > t.sy && pageY < t.sy + t.sHeight){
+				this.style.cursor = 'move';
+			
+
+			this.onmousedown = function() {
+				t.ex = t.sx;
+				t.ey = t.sy;
+				startX = e.pageX - (t.regional.offsetLeft + this.offsetLeft);
+				startY = e.pageY - (t.regional.offsetTop + this.offsetTop);
+				draging = true;
+			}
+
+			this.onmouseup = function() {
+				draging = false;
+			}
+
+			if(draging) {
+				if(t.ex + (pageX - startX) < 0){
+					t.sx = 0;
+				}else if (t.ex + (pageX - startX) + t.sWidth > t.imgWidth){
+					t.sx = t.imgWidth - t.sWidth;
+				}else{
+					t.sx = t.ex + (pageX - startX);
+				}
+
+				if(t.ey + (pageY - startY) < 0){
+					t.sy = 0;
+				}else if (t.ey + (pageY - startY) + t.sHeight > t.imgHeight){
+					t.sy = t.imgHeight - t.sHeight;
+				}else{
+					t.sy = t.ey + (pageY - startY);
+				}
+
+				t.cutImage();
+			}
+		}else{
+			this.style.cursor = 'auto';
+		}
+		}
+	}
+	
+	postFile.init();
+</script>

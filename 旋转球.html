@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>旋转球</title>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+</body>
+</html>
+<script src="js/ball.js"></script>
+<script src="js/utils.js"></script>
+<script type="text/javascript">
+	var canvas = document.getElementById('canvas');
+	canvas.style.background = '#000';
+	var W = canvas.width = 600,
+		H = canvas.height = 600;
+	var ctx = canvas.getContext('2d');
+
+	var vr = 0.05;//每一帧转动的弧度值 
+	var ball = new Ball();
+	ball.x = Math.random()*W;
+	ball.y = Math.random()*H;
+	var centerX = W/2,
+		centerY = H/2;
+	var cos = Math.cos(vr),
+		sin = Math.sin(vr);
+	(function drawFrame(){
+		window.requestAnimationFrame(drawFrame);
+		ctx.clearRect(0,0,W,H);
+
+		var x1 = ball.x - centerX;//相对中心点的位置 
+		var y1 = ball.y - centerY;
+
+		var newX = x1*cos - y1*sin; //旋转一定角度后的位置 
+		var newY = y1*cos + x1*sin;
+
+		ball.x = newX + centerX;//更新球的位置 
+		ball.y = newY + centerY;
+
+		ball.draw(ctx);
+	}())
+</script>

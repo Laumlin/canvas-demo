@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+</head>
+<body>
+	<canvas id="canvas">文字粒子与星星</canvas>
+</body>
+</html>
+<script src="js/utils.js"></script>
+<script type="text/javascript">
+	var canvas = document.getElementById('canvas');
+	canvas.style.background = '#000';
+	var W = canvas.width = window.innerWidth,
+		H = canvas.height = window.innerHeight;
+	var ctx = canvas.getContext('2d');
+
+	var griX = 7,
+		griY = 7,
+		during = 0.1,
+		starts = [];
+	
+
+	function randomInt(min, max) {
+		return min + Math.random()*(max - min + 1);
+	}
+
+	function Particle(x, y) {
+		this.color = ''//utils.parseColor(Math.random()*(0xffffff));		
+		this.x = x;
+		this.y = y;
+		this.radius = 1.1;
+		this.randomR = 0//randomInt(1.1,5.1);
+		this.dying = false;
+		this.base = [x,y]
+
+		this.drawParticle = function() {
+			if(this.dying === false && this.radius < this.randomR){
+				this.radius += during;
+			}else {
+				this.dying = true;
+			}
+
+			if(this.dying){
+				this.radius -= during;
+			}
+
+			ctx.save();
+			ctx.beginPath();
+			ctx.fillStyle = this.color;
+			ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);
+			ctx.fill();
+			ctx.restore();
+
+			if(this.radius < 1.1){
+				this.x = this.base[0];
+				this.y = this.base[1];
+				this.dying = false;
+			}
+		}
+	}
+	
+	 function Shape(x, y, size, text) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.text = text;
+        this.placement = [];
+    }
+    Shape.prototype.getValue = function() {
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = this.size + 'px arial';
+        ctx.fillText(this.text, this.x, this.y);
+
+        var idata = ctx.getImageData(0,0,W,H);
+        var buffer = new Uint32Array(idata.data.buffer);
+
+        for(var i=0; i<H; i+=griX){
+            for(var j=0; j<W; j+=griY){
+                if(buffer[i*W + j]){
+                    var particle = new Particle(j,i);
+                    particle.color = utils.parseColor(Math.random()*(0xffffff));
+                    particle.randomR = randomInt(1.1,5.1);
+                    this.placement.push(particle);
+                }
+            }
+        }
+    }
+
+    var word = new Shape(W/2, H/2, 350, '666');
+    word.getValue();
+
+	for(var i=0; i<500; i++){
+		var x = Math.random()*W;
+		var y = Math.random()*H;
+		var start = new Particle(x,y);
+		start.color = '#fff';
+		start.randomR = randomInt(1.1,1.5);
+		starts.push(start);
+	}
+	(function drawFrame(){
+		window.requestAnimationFrame(drawFrame);
+		ctx.clearRect(0,0,W,H);
+
+		starts.forEach(function(start){
+			start.drawParticle()
+		});
+
+		for(var i=0; i<word.placement.length; i++){
+            word.placement[i].drawParticle();
+       }
+	}())
+</script>

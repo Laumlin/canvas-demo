@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>小球喷发</title>
+</head>
+<body>
+	<canvas id="canvas"></canvas>		
+</body>
+</html>
+<script src="js/ball.js"></script>
+<script src="js/utils.js"></script>
+<script type="text/javascript">
+	var canvas = document.getElementById('canvas');
+	var W = canvas.width = 600,
+		H = canvas.height = 600;
+		canvas.style.background = '#000';
+	var ctx = canvas.getContext('2d');
+
+	var balls = [];
+	var ballsNum = 50;
+
+	for(let i=0; i<ballsNum; i++){
+		var size = Math.random()*20+5;
+		var color = Math.random()*(0xffffff);
+		var ball = new Ball(size, color);
+
+		ball.x = W/2;
+		ball.y = H;
+		ball.vx = Math.random()*2-1;
+		ball.vy = -Math.random()*2-1;
+
+		balls.push(ball);
+	}
+	console.log(balls)
+	function draw(ball){
+		ball.x += ball.vx;
+		ball.y += ball.vy;
+
+		if(ball.x+ball.radius<0||ball.x-ball.radius>W||ball.y+ball.radius<0||ball.y-ball.radius>H){
+			ball.x = W/2;
+			ball.y = H;
+			ball.vx = Math.random()*2-1;
+			ball.vy = -Math.random()*2-1;
+		}
+		ball.draw(ctx);
+	}
+
+	(function drawFrame(){
+		window.requestAnimationFrame(drawFrame);
+		ctx.clearRect(0,0,W,H);
+
+		balls.forEach(draw);
+	})()
+</script>

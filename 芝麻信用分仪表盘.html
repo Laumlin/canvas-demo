@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>芝麻信用分仪表盘</title>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+</body>
+</html>
+<script type="text/javascript">
+
+window.onload = function(){
+
+	var canvas = document.getElementById('canvas');
+	canvas.width = 400;
+	canvas.height = 700;
+	var ctx = canvas.getContext('2d');
+	var level = ['较差','中等','良好','优秀','极好'];
+	var deg0 = Math.PI/9,
+		deg1 = 11*Math.PI/45;
+	var dot = new Dot(),
+		dotSpeed = 0.03,
+		angle = 0,
+		credit = 400;
+	var scoreSpeed = Math.round(dotSpeed*100/deg1);
+	/*(100/deg1)表示1分走过的角度，(100/deg1)/dotSpeed表示走过一分所用的角速度*/
+	var score = 777;//初始一个分数值
+	if(score<400 || score>900){
+		 alert('信用分数区间：400~900');
+	}else{
+
+	}
+(function drawFrame(){
+    //绘制背景
+	let linegrad = ctx.createLinearGradient(0,0, 400,700);
+	linegrad.addColorStop(0,'rgb(0, 85, 255)');
+	linegrad.addColorStop(1,'rgb(0, 204, 255)');
+	ctx.fillStyle = linegrad;
+	ctx.fillRect(0,0,400,700);
+
+
+	//绘制透明层
+	const r = 135;//小圆的半径
+	ctx.save();
+	ctx.beginPath();
+	ctx.lineWidth = 10;
+	ctx.strokeStyle = 'rgba(255, 255, 255, .3)';
+	ctx.arc(200,350,r,deg0,8*deg0,true);
+	ctx.stroke();
+	ctx.restore();
+
+	//绘制刻度
+	ctx.save();
+	ctx.translate(200,350);
+	ctx.rotate(8*deg0);
+	for(let i=0; i<26; i++){
+			ctx.beginPath();
+			ctx.moveTo(130,0);
+			ctx.lineTo(140,0);
+		if(i%5 !== 0){
+			ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+			ctx.stroke();
+		}else{
+			ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+			ctx.stroke();			
+		}		
+		ctx.rotate(deg1/5);
+	}
+	ctx.restore();
+
+	//绘制数值
+	ctx.save();
+	ctx.translate(200,350);
+	ctx.rotate(8*deg0+Math.PI/2);
+	for(let i=0; i<6; i++){
+		ctx.beginPath();
+		ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+		ctx.font = '12px Microsoft yahei';
+		ctx.textAlign = 'center';
+		//ctx.textBaseline = 'middle';
+		ctx.fillText(400+i*100,0,-115);
+		ctx.rotate(deg1);
+	}
+	ctx.restore();
+
+	//绘制等级
+	ctx.save();
+	ctx.translate(200,350);
+	ctx.rotate(68*Math.PI/45);
+	for(let i=0; i<5; i++){
+		ctx.beginPath();
+		ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+		ctx.font = '12px Microsoft yahei';
+		ctx.textAlign = 'center';
+		ctx.fillText(level[i], 0, -115);
+		ctx.rotate(deg1);
+	}
+	ctx.restore();
+
+	//外面的圆圈
+	const R = 150;//大圆的半径
+	ctx.save()
+	ctx.beginPath();
+	ctx.lineWidth = 2;
+	ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+	ctx.arc(200,350,R, deg0, 8*deg0, true);
+	ctx.stroke();
+	ctx.restore();
+
+	//画出点的运动
+	ctx.save();
+	// ctx.clearRect(0,0,400,700);
+	ctx.translate(200,350);
+	ctx.rotate(8*deg0);
+	
+
+	dot.x = R*Math.cos(angle);
+	dot.y = R*Math.sin(angle);
+
+	var aim = (score-400)*(deg1/100);//计算score到400的弧度
+	if(angle < aim){
+		angle += dotSpeed;	
+	}
+	dot.draw(ctx);
+	ctx.restore();
+
+	//画出动画数字
+	ctx.save();
+	ctx.translate(200,350);
+	if(credit < score){
+		credit += scoreSpeed;
+	}else{
+		credit = score;
+	}
+	text(credit);
+	ctx.restore();
+
+	//动态显示信用等级
+	ctx.save();
+	ctx.translate(200,350);
+	ctx.beginPath();
+	ctx.textAlign = 'center';
+	ctx.font = '35px Microsoft yahei';
+	ctx.fillStyle = 'rgba(255, 255, 255, .7)';
+	if(credit<500){
+		ctx.fillText('信用较差', 0, 30);
+	}else if(credit >= 500 && credit < 600){
+		ctx.fillText('信用中等', 0, 30);
+	}else if(credit >= 600 && credit < 700){
+		ctx.fillText('信用良好', 0, 30);
+	}else if(credit >= 700 && credit < 800){
+		ctx.fillText('信用优秀', 0, 30);
+	}else{
+		ctx.fillText('信用极好', 0, 30);
+	}
+	ctx.font = '16px Microsoft yahei';
+	ctx.fillText('BETA', 0, -70);
+	ctx.font = '12px Microsoft yahei';
+	ctx.fillText('评估时间:2018.3.8', 0, 55);
+	ctx.restore();
+
+
+	window.requestAnimationFrame(drawFrame);
+
+})();
+
+	function Dot(){
+		this.x = 0;
+		this.y = 0;
+		this.draw = function(ctx){			
+			ctx.save();
+			ctx.beginPath();
+			ctx.fillStyle = '#FFF';
+			ctx.arc(this.x, this.y, 3, 0, Math.PI*2, false);
+			ctx.fill();
+			ctx.restore();
+		}
+	}
+
+	function text(process){
+		ctx.save();
+		ctx.beginPath();
+		ctx.textAlign = 'center';
+		ctx.fillStyle = '#000';
+		ctx.font = '50px Microsoft yahei';
+		ctx.fillText(process, 0, -10);
+		ctx.restore();
+	}
+}
+</script>

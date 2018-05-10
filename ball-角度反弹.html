@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>角度反弹</title>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+</body>
+</html>
+<script src="js/ball.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/line.js"></script>
+<script type="text/javascript">
+	var canvas = document.getElementById('canvas');
+	var W = canvas.width = 600,
+	 	H = canvas.height = 600;
+	var ctx = canvas.getContext('2d');
+	var ball = new Ball(20,'red'),
+		line = new Line(0,0,300,0),
+		bounce = -0.7,
+		grivaty = 0.2,
+		angle = 10;
+
+	ball.x = 100;
+	ball.y = 100;
+	line.x = 50;
+	line.y = 300;
+	
+	line.rotation = angle/180*Math.PI;
+	var cos = Math.cos(line.rotation),
+		sin = Math.sin(line.rotation);
+
+	(function drawFrame(){
+		window.requestAnimationFrame(drawFrame);
+		ctx.clearRect(0,0,W,H);
+
+		ball.vy += grivaty;
+		ball.x += ball.vx;
+		ball.y += ball.vy;
+
+		var x1 = ball.x - line.x,
+			y1 = ball.y - line.y;
+
+			y2 = y1*cos - x1*sin;
+			x2 = x1*cos + y1*sin;
+
+			vx1 = ball.vx*cos + ball.vy*sin;
+			vy1 = ball.vy*cos - ball.vx*sin;
+
+			var bounds = line.getBounds();
+			if( ball.x + ball.radius > bounds.x && ball.x - ball.radius < bounds.x + bounds.width && ball.y - ball.radius < bounds.y + bounds.height){
+				if(y2 > -ball.radius){
+					y2 = -ball.radius; 
+						vy1 *= bounce;
+					}
+			}
+		                  
+	       x1 = x2 * cos - y2 * sin;
+	       y1 = y2 * cos + x2 * sin;
+	       ball.vx = vx1 * cos - vy1 * sin;
+	       ball.vy = vy1 * cos + vx1 * sin;
+	       ball.x = line.x + x1;
+	       ball.y = line.y + y1;
+
+	    if(ball.x - ball.radius < 0){
+	    	ball.x = ball.radius;
+	    	ball.vx *= bounce;
+	    }else if(ball.x + ball.radius > W){
+	    	ball.x = W - ball.radius;
+	    	ball.vx *= bounce;
+	    }
+	    if(ball.y - ball.radius < 0){
+	    	ball.y = ball.radius;
+	    	ball.vy *= bounce;
+	    }else if(ball.y + ball.radius > H){
+	    	ball.y = H - ball.radius;
+	    	ball.vy *= bounce;
+	    }
+
+		line.draw(ctx);
+		ball.draw(ctx);
+	}())
+
+</script>

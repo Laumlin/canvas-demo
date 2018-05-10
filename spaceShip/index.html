@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>小游戏</title>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+</body>
+</html>
+<script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script>
+<script src="js/jquery.hotkeys.js"></script>
+<script src="js/sound.js"></script>
+<script type="text/javascript">
+	var canvas = document.getElementById('canvas');
+	var w = canvas.width = 600,
+		h = canvas.height = 600,
+		ctx = canvas.getContext('2d');
+	var score = 0;
+	
+//player
+	var playerReady = false;
+ 	var player = {
+ 		color: '#00A',
+ 		x: 250,
+ 		y: 500,
+ 		width: 32,
+ 		height: 32,
+ 		active: true,
+ 		draw: function() {
+ 			image = new Image();
+ 			image.src = 'image/player.png';
+ 			image.onload = function() {
+ 				playerReady = true;
+ 			}
+ 			if(playerReady){
+				ctx.drawImage(image,this.x, this.y, this.width, this.height);
+			} 				
+ 		}
+ 	}
+ 	player.shoot = function() {
+ 		var bulletPosition = this.midPoint();
+
+ 		playerBulllets.push(Bullet({
+ 			speed: 5,
+ 			x: bulletPosition.x,
+ 			y: bulletPosition.y
+ 		}));
+ 	};
+ 	player.midPoint = function() {
+ 		return {
+ 			x: this.x + this.width/2,
+ 			y: this.y + this.height/2
+ 		}
+ 	}
+ 	player.explode = function() {
+ 		this.active = false;
+ 	}
+//监听事件
+$(function() {
+  window.keydown = {};
+  
+  function keyName(event) {
+    return jQuery.hotkeys.specialKeys[event.which] ||
+      String.fromCharCode(event.which).toLowerCase();
+  }
+  
+  $(document).bind("keydown", function(event) {
+    keydown[keyName(event)] = true;
+  });
+  
+  $(document).bind("keyup", function(event) {
+    keydown[keyName(event)] = false;
+  });
+});
+ //player边界检测
+ 	function clamp(obj) {
+ 		if(obj.x < 0) {
+ 			obj.x = 0;
+ 		}else if(obj.x + obj.width > w){
+ 			obj.x = w - obj.width;
+ 		}
+ 	}
+
+
+//Bulllets
+var playerBulllets = [];	
+	function Bullet(I){
+		I.active = true;
+
+		I.vx = 0;
+		I.vy = -I.speed;
+		I.width = 3;
+		I.height = 3;
+		I.color = '#000';
+
+		I.inBounds = function() {
+			return I.x >=0 && I.x + I.width <= w && I.y >= 0 && I.y + I.height <= h;
+		}
+
+		I.draw = function() {
+			ctx.fillStyle = this.color;
+			ctx.fillRect(this.x, this.y, this.width, this.height);
+		}
+
+		I.update = function() {
+			I.x += I.vx;
+			I.y += I.vy;
+
+			I.active = I.active && I.inBounds();
+		}
+
+		I.explode = function(){
+			I.active = false;
+		}
+		return I;
+	}
+//检测碰撞
+	function clash(a, b) {
+		return !(a.x > b.x + b.width || 
+				 b.x > a.x + a.width ||
+				 a.y > b.y + b.height ||
+				 b.y > a.y + a.height);
+	}
+//处理碰撞
+	function handleCollision() {
+		emeries.forEach(function(emery){
+			playerBulllets.forEach(function(bullet){
+				if(clash(emery, bullet)){
+					emery.explode();
+					bullet.explode();
+					score += 1;
+				}
+			});
+		});
+
+		emeries.forEach(function(emery){
+			if(clash(emery, player)){ 
+				emery.explode();
+				player.explode();
+			}
+		});
+	}
+//emery
+var emeries = [];
+var emeryReady = false;
+	function emery(I){
+		var I = I || {};
+		I.active = true;
+		I.color = '#A2B';
+		I.width = 32;
+		I.height = 32;
+		I.vx = Math.random()*2 - 2;
+		I.vy = 2;
+		I.x = Math.random()*w/2 + w/4;
+		I.y = 0;	
+
+		I.inBounds = function() {
+			return I.x > 0 && I.x < w && I.y > 0 && I.y < h;
+		}
+	
+		I.draw = function() {
+			var image = new Image();
+ 			image.src = 'image/enemy.png';
+ 			image.onload = function() {
+ 				emeryReady = true;
+ 			}
+ 			if(emeryReady) {
+				ctx.drawImage(image,this.x, this.y, this.width, this.height);
+			}				
+		}	
+
+		I.update = function() {
+			I.x += I.vx;
+			I.y += I.vy;
+
+			I.active = I.active && I.inBounds();
+		}
+
+		I.explode = function() {
+			I.active = false;
+			Sound.play('explosion');
+		}
+		return I;
+	}
+ 	function draw() {
+		ctx.fillStyle = '#000';
+		ctx.fillText('Sup Bro', 50,50);
+		ctx.fillText('your score: '+ score, 400, 50);
+		player.draw();
+		playerBulllets.forEach(function(bullet){
+			bullet.draw();
+		});
+		emeries.forEach(function(emery){
+			emery.draw();
+		});
+	}
+	function update() {
+		if(keydown.space){
+			player.shoot();
+			Sound.play('shoot');
+		}
+		if(keydown.left){
+			player.x -= 5;
+		}
+		if(keydown.right){
+			player.x += 5;
+		}
+		clamp(player);
+		playerBulllets.forEach(function(bullet){
+			bullet.update();
+		});
+		playerBulllets = playerBulllets.filter(function(bullet){
+			return bullet.active;
+		});
+
+		if(Math.random() < 0.05) {
+			emeries.push(emery());
+		}
+		emeries.forEach(function(emery){
+			emery.update();
+		});
+		emeries = emeries.filter(function(emery){
+			return emery.active;
+		});
+
+		handleCollision();
+	}
+	var FPS = 30;
+	
+	function f(){
+		var a = setInterval(function(){
+			ctx.clearRect(0,0,w,h);
+			if(player.active) {
+				draw();
+				update();
+			} else {
+				clearInterval(a);
+				ctx.clearRect(0,0,w,h);
+				ctx.font = '32px arial';
+				ctx.fillText('GG', w/2, h/2);
+				//游戏结束1000ms后，游戏重开
+				setTimeout(function(){
+					var r = confirm("你想再来一发吗？");
+					if(r === true){
+						player.active = true;
+						emeries.forEach(function(emery){
+							emery.active = false; //清空canvas的敌机
+						});
+						score = 0; //分数设置为0
+					f(); //重新启动游戏
+				}
+				}, 1000)
+		 	}	
+		},1000/FPS);
+	}
+	f();
+
+</script>	

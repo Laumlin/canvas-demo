@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>碰撞检测</title>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+</body>
+</html>
+<script src="js/ball.js"></script>
+<script src="js/utils.js"></script>
+<script type="text/javascript">
+	var canvas = document.getElementById('canvas');
+		canvas.style.background = '#000';
+	var W = canvas.width = 600,
+		H = canvas.height = 600;
+	var ctx = canvas.getContext('2d');
+
+	var balls = [];
+	const ball_num = 10;
+	var big = new Ball(30);
+	big.x = W/2;
+	big.y = H/2;
+
+	for(var i=0; i<ball_num; i++){
+		var size = Math.random()*20+10;
+		var color = Math.random()*(0xffffff);
+		var ball = new Ball(size, color);
+		ball.x = Math.random()*W;
+		ball.y = Math.random()*H;
+		ball.vx = Math.random()*10-5;
+		ball.vy = Math.random()*10-5;
+		balls.push(ball);
+	}
+
+	function move(ball) {
+		ball.x += ball.vx;
+		ball.y += ball.vy;
+		if(ball.x-ball.radius<0){
+			ball.x = ball.radius;
+			ball.vx *= -1;
+		}else if(ball.x+ball.radius>W){
+			ball.x = W - ball.radius;
+			ball.vx *= -1;
+		}
+		if(ball.y-ball.radius<0){
+			ball.y = ball.radius;
+			ball.vy *= -1;
+		}else if(ball.y+ball.radius>H){
+			ball.y = H - ball.radius;
+			ball.vy *= -1;
+		}
+		ball.draw(ctx);
+	}
+//每个小球与大球的碰撞
+	function clash(ball){
+		var dx = ball.x - big.x;
+		var dy = ball.y - big.y;
+		var distance = Math.hypot(dx, dy);
+		var min_distance = big.radius + ball.radius;
+		var speed = Math.hypot(ball.vx, ball.vy);
+		if(distance<min_distance){
+			var angle = Math.atan2(dy,dx);
+			/*弹性动画碰撞*/
+			// var targetX = big.x + Math.cos(angle)*min_distance;
+			// var targetY = big.y + Math.sin(angle)*min_distance;
+			// ball.vx += (targetX - ball.x)*0.03;
+			// ball.vy += (targetY - ball.y)*0.03;
+			/*直接反弹*/
+			ball.vx = Math.cos(angle)*speed;
+			ball.vy = Math.sin(angle)*speed;
+
+		}
+	}
+
+//每个小球之间的碰撞
+	function Clash(ballA, i){
+	 for(var ballB, j=i+1; j<ball_num; j++){
+		    ballB = balls[j];
+			var dx = ballA.x - ballB.x;
+			var dy = ballA.y - ballB.y;
+			var distance = Math.hypot(dx, dy);
+			var min_distance = ballA.radius + ballB.radius;		
+			if(distance<min_distance){
+				ballA.vx *= -1;
+				ballA.vy *= -1;
+				ballB.vx *= -1;
+				ballB.vy *= -1;
+			}	
+		}
+	}
+	(function drawFrame(){
+		window.requestAnimationFrame(drawFrame);
+		ctx.clearRect(0,0,W,H);
+		balls.forEach(move);
+		big.draw(ctx);
+		balls.forEach(clash);
+		balls.forEach(Clash);
+	}())
+
+</script>

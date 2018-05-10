@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>时钟</title>
+</head>
+<body>
+	<canvas id="c"></canvas>
+</body>
+</html>
+<script type="text/javascript">
+	(function clock(){
+	//绘制钟表背景
+	let canvas = document.getElementById('c');
+	canvas.width = 400;
+	canvas.height = 400;
+	let c = canvas.getContext('2d');
+	c.translate(200,200);
+	c.rotate(-Math.PI/2);
+	let lingrad = c.createLinearGradient(150,0,-150,0);
+	lingrad.addColorStop(0, '#242f37');
+	lingrad.addColorStop(1, '#48585c');
+	c.fillStyle = lingrad;
+	c.beginPath();
+	//画出钟表的轮廓
+	c.arc(0,0,150,0,Math.PI*2,true);
+	c.fill();
+
+	//绘制时钟上的部分数字	
+	c.save();
+	c.rotate(Math.PI/2);
+	c.beginPath();
+	c.fillStyle = '#789';
+	c.textAlign = 'center';
+	c.textBaseline = 'middle';
+	c.font = '32px Microsoft yahei'
+	c.fillText('3', 100,0);
+	c.fillText('6', 0,100);
+	c.fillText('9', -100,0);
+	c.fillText('12', 0,-100);
+	c.restore();
+	
+	//绘制小时刻度
+	for(let i=0; i<12; i++){
+		c.rotate(Math.PI/6);
+		c.strokeStyle = '#fff';
+		c.moveTo(120,0);
+		c.lineTo(140,0);
+		c.stroke();
+	}
+	//绘制分钟刻度
+	for(let i=0; i<60; i++){
+		c.rotate(Math.PI/30);
+		c.strokeStyle = '#fff';
+		c.moveTo(130,0);
+		c.lineTo(140,0);
+		c.stroke();
+	}
+
+	//获取时间
+	let t = new Date();
+	let h = t.getHours();
+	let m = t.getMinutes();
+	let s = t.getSeconds();
+	h = h>12 ? h-12:h;
+
+//时钟转动
+	c.save();
+	c.beginPath();
+	c.lineWidth = 2;
+	c.rotate(Math.PI*h/6 + Math.PI*m/360 + Math.PI*s/21600);
+	c.moveTo(0,0);
+	c.lineTo(90,0);
+	c.stroke();
+	c.restore();
+
+//分针转动
+	c.save();
+	c.beginPath();
+	c.lineWidth = 2;
+	c.rotate(m*Math.PI/30 + s*Math.PI/1800);
+	c.lineWidth = 1;
+	c.moveTo(0,0);
+	c.lineTo(100,0);
+	c.stroke();
+	c.restore();
+
+//秒针转动
+	c.save();
+	c.beginPath();
+	c.lineWidth = 1;
+	c.rotate(s*Math.PI/30);
+	c.lineWidth = 1;
+	c.moveTo(0,0);
+	c.lineTo(115,0);
+	c.stroke();
+	c.restore();
+	window.requestAnimationFrame(clock);
+})();
+
+// 	var second = document.createElement('canvas');
+// 	document.body.appendChild(second);
+// (function Clock(){
+// 		second.width = 400;
+// 		second.height = 400;
+// 	var ctx = second.getContext('2d');
+// 	var time = new Date(),
+// 		hour = time.getHours(),
+// 		minutes = time.getMinutes(),
+// 		seconds = time.getSeconds();
+// 		hour = hour>12 ? hour-12 : hour;
+
+// 	ctx.translate(200,200);
+// 	ctx.rotate(-Math.PI/2);
+// 	var linegrad = ctx.createLinearGradient(150, 0, -150, 0,);
+// 	linegrad.addColorStop(0, '#404040');
+// 	linegrad.addColorStop(1, '#696969');
+// 	ctx.fillStyle = linegrad;
+// 	ctx.arc(0, 0, 150, 0, Math.PI*2);
+// 	ctx.fill();
+
+// 	ctx.beginPath();
+// 	ctx.strokeStyle = '#FFF';
+// 	ctx.lineWidth = 2;
+// 	for(let i=0; i<60; i++){
+// 		ctx.moveTo(140,0);
+// 		if(i%5 !== 0){		
+// 			ctx.lineTo(130,0);
+// 			ctx.stroke();
+// 		}
+// 		else{
+// 			ctx.lineTo(120,0);
+// 			ctx.stroke();
+// 		}
+// 		ctx.rotate(Math.PI/30);
+// 	}
+
+// 	ctx.save();
+// 	ctx.beginPath();
+// 	ctx.fillStyle = "#FFF";
+// 	ctx.font = '32px Arial';
+// 	ctx.textAlign = 'center';
+// 	ctx.textBaseline = 'middle';
+// 	ctx.rotate(Math.PI/2);
+// 	ctx.fillText(3,100,0);
+// 	ctx.fillText(6,0,100);
+// 	ctx.fillText(9,-100,0);
+// 	ctx.fillText(12,0,-100);
+// 	ctx.restore();
+
+    
+// 	ctx.save();
+// 	ctx.beginPath();
+// 	ctx.rotate(-Math.PI/2);
+// 	ctx.strokeStyle = '#FFF';
+// 	ctx.rotate(hour*Math.PI/6 + minutes*Math.PI/360 + seconds*Math.PI/21600);
+// 	ctx.moveTo(0,0);
+// 	ctx.lineTo(0,70);
+// 	ctx.stroke();
+// 	ctx.restore();
+
+// 	ctx.save();
+// 	ctx.beginPath();
+// 	ctx.rotate(-Math.PI/2);
+// 	ctx.strokeStyle = '#FFF';
+// 	ctx.rotate(minutes*Math.PI/30 + seconds*Math.PI/1800);
+// 	ctx.moveTo(0,0);
+// 	ctx.lineTo(0,90);
+// 	ctx.stroke();
+// 	ctx.restore();
+
+// 	ctx.save();
+// 	ctx.beginPath();
+// 	ctx.rotate(-Math.PI/2);
+// 	ctx.strokeStyle = '#FFF';
+// 	ctx.rotate(seconds*Math.PI/30);
+// 	ctx.moveTo(0,0);
+// 	ctx.lineTo(0,110);
+// 	ctx.stroke();
+// 	ctx.restore();
+
+// 	window.requestAnimationFrame(Clock);
+// })();
+</script>
